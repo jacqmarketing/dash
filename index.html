@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Financial Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --pink:#C2185B;--pink-mid:#E91E8C;--pink-light:#FCE4EC;--pink-pale:#FFF0F6;
+  --green:#1A7A5E;--green-light:#E6F4F0;
+  --red:#B91C1C;--red-light:#FEE2E2;
+  --amber:#92540A;--amber-light:#FEF3C7;
+  --purple:#6D28D9;--purple-light:#F5F3FF;
+  --blue:#1D4ED8;--blue-light:#EFF6FF;
+  --gray:#6B7280;--gray-light:#F9FAFB;--gray-border:#E5E7EB;
+  --white:#FFFFFF;--black:#111827;
+  --serif:'Playfair Display',serif;
+  --sans:'Inter',sans-serif;
+  --radius:12px;--radius-sm:8px;--radius-lg:18px;
+}
+body{font-family:var(--sans);background:#FFF5F8;color:var(--black);min-height:100vh}
+
+/* ── HEADER ── */
+.header{background:var(--pink);padding:20px 24px 0;position:sticky;top:0;z-index:100}
+.header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.logo{font-family:var(--serif);font-size:20px;color:white;letter-spacing:.01em}
+.logo span{opacity:.7;font-size:13px;font-weight:300;display:block;font-family:var(--sans);letter-spacing:.08em;text-transform:uppercase}
+.header-actions{display:flex;gap:8px}
+.btn-ghost{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:white;border-radius:var(--radius-sm);padding:7px 14px;font-size:12px;cursor:pointer;font-family:var(--sans);transition:.15s}
+.btn-ghost:hover{background:rgba(255,255,255,.25)}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:2px;overflow-x:auto;padding-bottom:0}
+.tabs::-webkit-scrollbar{display:none}
+.tab{background:rgba(255,255,255,.15);border:none;color:rgba(255,255,255,.75);padding:10px 18px;font-size:13px;font-family:var(--sans);cursor:pointer;border-radius:var(--radius-sm) var(--radius-sm) 0 0;white-space:nowrap;transition:.15s;border-bottom:3px solid transparent}
+.tab:hover{background:rgba(255,255,255,.25);color:white}
+.tab.active{background:white;color:var(--pink);font-weight:600;border-bottom-color:white}
+
+/* ── MAIN ── */
+.main{max-width:900px;margin:0 auto;padding:28px 20px}
+.page{display:none}.page.active{display:block}
+
+/* ── CARDS ── */
+.card{background:white;border-radius:var(--radius-lg);padding:22px;margin-bottom:16px;box-shadow:0 1px 4px rgba(194,24,91,.07)}
+.card-title{font-family:var(--serif);font-size:16px;color:var(--pink);margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+
+/* ── STAT BLOCKS ── */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+.stat{border-radius:var(--radius);padding:14px 16px;text-align:center}
+.stat-label{font-size:11px;text-transform:uppercase;letter-spacing:.07em;opacity:.75;margin-bottom:4px}
+.stat-value{font-family:var(--serif);font-size:22px;font-weight:600}
+
+/* ── TABLE ROWS ── */
+.row{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--gray-border)}
+.row:last-child{border-bottom:none}
+.row-label{font-size:14px}
+.row-due{font-size:11px;color:var(--gray);text-align:center;min-width:50px}
+.row-amt{font-size:14px;font-weight:500;text-align:right;min-width:80px}
+.row-actions{display:flex;gap:6px;justify-content:flex-end}
+
+/* ── INPUTS ── */
+.field{display:flex;flex-direction:column;gap:5px;flex:1}
+.field label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--gray)}
+input[type=number],input[type=text],select{
+  width:100%;padding:9px 12px;border:1.5px solid var(--gray-border);border-radius:var(--radius-sm);
+  font-family:var(--sans);font-size:14px;color:var(--black);background:var(--white);
+  transition:.15s;outline:none
+}
+input:focus,select:focus{border-color:var(--pink)}
+.inline-amt{width:90px;text-align:right;padding:6px 10px;border:1.5px solid var(--gray-border);border-radius:var(--radius-sm);font-size:14px;font-family:var(--sans)}
+.inline-amt:focus{border-color:var(--pink);outline:none}
+.input-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px}
+
+/* ── BUTTONS ── */
+.btn{padding:8px 16px;border:none;border-radius:var(--radius-sm);font-size:13px;font-family:var(--sans);cursor:pointer;font-weight:500;transition:.15s}
+.btn-pink{background:var(--pink);color:white}.btn-pink:hover{background:#A31449}
+.btn-outline{background:transparent;border:1.5px solid var(--pink);color:var(--pink)}.btn-outline:hover{background:var(--pink-pale)}
+.btn-red{background:var(--red-light);color:var(--red);border:none;padding:4px 10px;font-size:12px;border-radius:6px;cursor:pointer}
+.btn-sm{padding:5px 10px;font-size:12px}
+
+/* ── SECTION LABELS ── */
+.section-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--gray);margin:18px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--gray-border)}
+
+/* ── PROGRESS BAR ── */
+.pbar-wrap{background:var(--gray-border);border-radius:99px;height:6px;overflow:hidden;margin-top:6px}
+.pbar-fill{height:100%;border-radius:99px;background:var(--pink);transition:width .4s}
+
+/* ── SPLIT BUCKETS ── */
+.buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:14px}
+.bucket{border-radius:var(--radius);padding:14px;text-align:center}
+.bucket-icon{font-size:20px;margin-bottom:4px}
+.bucket-name{font-size:11px;font-weight:500;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+.bucket-val{font-family:var(--serif);font-size:20px;font-weight:600}
+.bucket-sub{font-size:10px;margin-top:3px;opacity:.75}
+
+/* ── INCOME LOG TABLE ── */
+.log-table{width:100%;border-collapse:collapse}
+.log-table th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);padding:8px 10px;text-align:left;border-bottom:2px solid var(--pink-light)}
+.log-table td{padding:9px 10px;border-bottom:1px solid var(--gray-border);font-size:13px}
+.log-table tr:last-child td{border-bottom:none}
+.log-table input{border:1.5px solid var(--gray-border);border-radius:6px;padding:5px 8px;font-size:13px;font-family:var(--sans);width:100%}
+.log-table input:focus{border-color:var(--pink);outline:none}
+
+/* ── DEBT ITEMS ── */
+.debt-item{display:grid;grid-template-columns:1fr 110px 100px auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--gray-border)}
+.debt-name{font-size:14px;font-weight:500}
+.debt-sub{font-size:11px;color:var(--gray)}
+.debt-input{text-align:right}
+
+/* ── HISTORY ── */
+.history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.history-card{background:var(--pink-pale);border:1px solid var(--pink-light);border-radius:var(--radius);padding:14px;cursor:pointer;transition:.15s}
+.history-card:hover{border-color:var(--pink)}
+.history-month{font-family:var(--serif);font-size:15px;color:var(--pink);margin-bottom:8px}
+.history-line{display:flex;justify-content:space-between;font-size:12px;color:var(--gray);margin-bottom:3px}
+
+/* ── TOTAL FOOTER ── */
+.total-bar{background:var(--pink);border-radius:var(--radius);padding:16px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-top:16px;color:white}
+.total-bar-item{text-align:center}
+.total-bar-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;opacity:.8;margin-bottom:2px}
+.total-bar-value{font-family:var(--serif);font-size:22px}
+
+.empty{text-align:center;color:var(--gray);font-size:14px;padding:30px;font-style:italic}
+.del{background:none;border:none;color:var(--gray);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:4px;line-height:1}
+.del:hover{color:var(--red);background:var(--red-light)}
+.tag{display:inline-block;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.tag-biz{background:var(--green-light);color:var(--green)}
+.tag-per{background:var(--purple-light);color:var(--purple)}
+.tag-debt{background:var(--red-light);color:var(--red)}
+.savebadge{position:fixed;bottom:20px;right:20px;background:var(--green);color:white;padding:10px 18px;border-radius:99px;font-size:13px;font-weight:500;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.savebadge.show{opacity:1}
+
+/* ── PIN SCREEN ── */
+#pin-screen{position:fixed;inset:0;background:var(--pink);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+#pin-screen h1{font-family:var(--serif);color:white;font-size:28px;letter-spacing:.02em}
+#pin-screen p{color:rgba(255,255,255,.75);font-size:14px}
+.pin-dots{display:flex;gap:12px;margin:8px 0}
+.pin-dot{width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,.3);transition:.2s}
+.pin-dot.filled{background:white}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+.pin-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:white;width:70px;height:70px;border-radius:50%;font-size:22px;font-family:var(--sans);cursor:pointer;transition:.15s}
+.pin-btn:hover{background:rgba(255,255,255,.3)}
+.pin-btn:active{transform:scale(.95)}
+.pin-error{color:rgba(255,255,255,.9);font-size:13px;background:rgba(0,0,0,.2);padding:8px 18px;border-radius:99px;opacity:0;transition:opacity .3s}
+.pin-error.show{opacity:1}
+.pin-change{background:none;border:none;color:rgba(255,255,255,.6);font-size:12px;cursor:pointer;text-decoration:underline;margin-top:8px}
+
+/* ── BILL ROWS WITH CHECKBOX ── */
+.bill-row{display:grid;grid-template-columns:28px 1fr 70px 100px 88px auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--gray-border);transition:.2s}
+.bill-row.paid{background:var(--green-light);border-radius:6px;padding:9px 8px}
+.bill-row.paid .bill-name{text-decoration:line-through;color:var(--gray)}
+.bill-row.paid .bill-due{color:var(--gray)}
+.bill-chk{width:18px;height:18px;accent-color:var(--pink);cursor:pointer}
+.paid-bar-wrap{background:var(--gray-border);border-radius:99px;height:8px;overflow:hidden;margin:10px 0 4px}
+.paid-bar-fill{height:100%;border-radius:99px;background:var(--green);transition:width .4s}
+.paid-summary{font-size:12px;color:var(--gray);margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<div id="pin-screen">
+  <h1>🌸 My Dashboard</h1>
+  <p>Enter your PIN to continue</p>
+  <div class="pin-dots">
+    <div class="pin-dot" id="d0"></div>
+    <div class="pin-dot" id="d1"></div>
+    <div class="pin-dot" id="d2"></div>
+    <div class="pin-dot" id="d3"></div>
+  </div>
+  <div class="pin-error" id="pin-error">Incorrect PIN — try again</div>
+  <div class="pin-pad" id="pin-pad">
+    <button class="pin-btn" id="pb1">1</button>
+    <button class="pin-btn" id="pb2">2</button>
+    <button class="pin-btn" id="pb3">3</button>
+    <button class="pin-btn" id="pb4">4</button>
+    <button class="pin-btn" id="pb5">5</button>
+    <button class="pin-btn" id="pb6">6</button>
+    <button class="pin-btn" id="pb7">7</button>
+    <button class="pin-btn" id="pb8">8</button>
+    <button class="pin-btn" id="pb9">9</button>
+    <button class="pin-btn" id="pbclr" style="font-size:14px">CLR</button>
+    <button class="pin-btn" id="pb0">0</button>
+    <button class="pin-btn" id="pbbk" style="font-size:18px">⌫</button>
+  </div>
+  <button class="pin-change" id="pin-change-btn">change PIN</button>
+</div>
+
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo">My Finances <span>Financial Dashboard</span></div>
+    <div class="header-actions">
+      <button class="btn-ghost" onclick="downloadMonth()">⬇ Save This Month</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('overview',this)">Overview</button>
+    <button class="tab" onclick="showTab('bills',this)">Bills & Subs</button>
+    <button class="tab" onclick="showTab('business',this)">Business</button>
+    <button class="tab" onclick="showTab('debt',this)">Debt Tracker</button>
+    <button class="tab" onclick="showTab('medical',this)">Medical Debt</button>
+    <button class="tab" onclick="showTab('history',this)">History</button>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ══ OVERVIEW ══ -->
+<div class="page active" id="page-overview">
+  <div class="stats-row">
+    <div class="stat" style="background:var(--green-light)">
+      <div class="stat-label" style="color:var(--green)">Salary Take-Home</div>
+      <div class="stat-value" style="color:var(--green)" id="ov-salary">$0</div>
+    </div>
+    <div class="stat" style="background:var(--red-light)">
+      <div class="stat-label" style="color:var(--red)">Total Going Out</div>
+      <div class="stat-value" style="color:var(--red)" id="ov-out">$0</div>
+    </div>
+    <div class="stat" style="background:var(--pink-light)">
+      <div class="stat-label" style="color:var(--pink)">Left Over</div>
+      <div class="stat-value" style="color:var(--pink)" id="ov-left">$0</div>
+    </div>
+    <div class="stat" style="background:var(--amber-light)">
+      <div class="stat-label" style="color:var(--amber)">Biz Income</div>
+      <div class="stat-value" style="color:var(--amber)" id="ov-biz-stat">$0</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🌸 This Month's Snapshot</div>
+    <div class="row"><span class="row-label">Salary take-home</span><span></span><span class="row-amt" id="ov2-salary" style="color:var(--green)">$0</span></div>
+    <div class="row"><span class="row-label">Total bills &amp; subscriptions</span><span></span><span class="row-amt" id="ov2-bills" style="color:var(--red)">$0</span></div>
+    <div class="row" style="font-weight:600"><span class="row-label">Left over after bills</span><span></span><span class="row-amt" id="ov2-left">$0</span></div>
+    <div style="height:1px;background:var(--gray-border);margin:6px 0"></div>
+    <div class="row"><span class="row-label">Biz income this month (gross)</span><span></span><span class="row-amt" id="ov2-biz" style="color:var(--green)">$0</span></div>
+    <div class="row"><span class="row-label">Partner cuts</span><span></span><span class="row-amt" id="ov2-partner" style="color:var(--red)">$0</span></div>
+    <div class="row" style="font-weight:600"><span class="row-label">Net biz income</span><span></span><span class="row-amt" id="ov2-biznet" style="color:var(--green)">$0</span></div>
+    <div style="height:1px;background:var(--gray-border);margin:6px 0"></div>
+    <div class="row"><span class="row-label">Total debt remaining</span><span></span><span class="row-amt" id="ov2-debt" style="color:var(--red)">$0</span></div>
+    <div class="row"><span class="row-label">Medical debt remaining</span><span></span><span class="row-amt" id="ov2-med" style="color:var(--red)">$0</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">✨ $60k Biz Goal — 2026</div>
+    <div class="input-row" style="margin-bottom:14px">
+      <div class="field"><label>YTD Biz Income</label><input type="number" id="ytd-inp" value="36596" oninput="saveAll();refreshOverview()"></div>
+      <div class="field"><label>Goal</label><input type="number" id="goal-inp" value="60000" oninput="saveAll();refreshOverview()"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
+      <span id="ytd-pct-label">49% there</span>
+      <span id="ytd-rem-label">$30,854 to go</span>
+    </div>
+    <div class="pbar-wrap"><div class="pbar-fill" id="ytd-bar" style="width:49%"></div></div>
+  </div>
+</div>
+
+<!-- ══ BILLS & SUBSCRIPTIONS ══ -->
+<div class="page" id="page-bills">
+  <div class="card">
+    <div class="card-title">💚 Monthly Take-Home</div>
+    <div class="input-row">
+      <div class="field"><label>Salary Take-Home ($)</label><input type="number" id="salary-inp" value="4198" oninput="saveAll();refreshAll()"></div>
+    </div>
+  </div>
+
+  <!-- Housing & Living -->
+  <div class="card">
+    <div class="card-title" style="color:var(--green)">🏠 Housing &amp; Living</div>
+    <div style="display:grid;grid-template-columns:1fr 70px 100px auto;gap:8px;padding:5px 0;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);border-bottom:2px solid var(--green-light)">
+      <span>Item</span><span style="text-align:center">Due</span><span style="text-align:right">Amount</span><span></span>
+    </div>
+    <div id="bills-housing"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:8px;padding-top:8px;border-top:1px solid var(--gray-border)">
+      <span style="font-size:13px;color:var(--gray)">subtotal: <strong style="color:var(--green)" id="sub-housing">$0</strong></span>
+    </div>
+  </div>
+
+  <!-- Debt Minimums -->
+  <div class="card">
+    <div class="card-title" style="color:var(--red)">💳 Debt Minimum Payments</div>
+    <div style="display:grid;grid-template-columns:1fr 70px 100px auto;gap:8px;padding:5px 0;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);border-bottom:2px solid var(--red-light)">
+      <span>Account</span><span style="text-align:center">Due</span><span style="text-align:right">Min/mo</span><span></span>
+    </div>
+    <div id="bills-debt"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:8px;padding-top:8px;border-top:1px solid var(--gray-border)">
+      <span style="font-size:13px;color:var(--gray)">subtotal: <strong style="color:var(--red)" id="sub-debt">$0</strong></span>
+    </div>
+  </div>
+
+  <!-- Personal Subscriptions -->
+  <div class="card">
+    <div class="card-title" style="color:var(--purple)">🟣 Personal Subscriptions</div>
+    <div style="display:grid;grid-template-columns:1fr 70px 100px auto;gap:8px;padding:5px 0;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);border-bottom:2px solid var(--purple-light)">
+      <span>Subscription</span><span style="text-align:center">Due</span><span style="text-align:right">Amount</span><span></span>
+    </div>
+    <div id="bills-personal"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:8px;padding-top:8px;border-top:1px solid var(--gray-border)">
+      <span style="font-size:13px;color:var(--gray)">subtotal: <strong style="color:var(--purple)" id="sub-personal">$0</strong></span>
+    </div>
+  </div>
+
+  <!-- Business Subscriptions -->
+  <div class="card">
+    <div class="card-title" style="color:var(--green)">🟢 Business Subscriptions</div>
+    <div style="display:grid;grid-template-columns:1fr 70px 100px auto;gap:8px;padding:5px 0;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);border-bottom:2px solid var(--green-light)">
+      <span>Subscription</span><span style="text-align:center">Due</span><span style="text-align:right">Amount</span><span></span>
+    </div>
+    <div id="bills-biz"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:8px;padding-top:8px;border-top:1px solid var(--gray-border)">
+      <span style="font-size:13px;color:var(--gray)">subtotal: <strong style="color:var(--green)" id="sub-biz">$0</strong></span>
+    </div>
+  </div>
+
+  <!-- Paid progress -->
+  <div class="card" style="margin-top:4px">
+    <div class="card-title" style="font-size:14px">✅ This Month's Progress — <span id="current-month-label"></span>
+      <button class="btn btn-outline btn-sm" onclick="resetBillsPaid()" style="font-size:11px;border-color:var(--gray-border);color:var(--gray)">↺ New Month Reset</button>
+    </div>
+    <div class="paid-summary" id="paid-summary">loading...</div>
+    <div class="paid-bar-wrap"><div class="paid-bar-fill" id="paid-bar-fill" style="width:0%"></div></div>
+  </div>
+
+  <!-- Total bar -->
+  <div class="total-bar">
+    <div class="total-bar-item"><div class="total-bar-label">Salary</div><div class="total-bar-value" id="tb-salary">$0</div></div>
+    <div class="total-bar-item"><div class="total-bar-label">Total Out</div><div class="total-bar-value" id="tb-out">$0</div></div>
+    <div class="total-bar-item"><div class="total-bar-label">Left Over</div><div class="total-bar-value" id="tb-left">$0</div></div>
+  </div>
+
+  <!-- Reset defaults -->
+  <div style="text-align:center;margin:8px 0">
+    <button class="btn btn-outline btn-sm" onclick="if(confirm('Reset all bills to defaults? This clears any saved changes.')){localStorage.removeItem('kbd_v1');location.reload()}" style="font-size:11px;color:var(--gray);border-color:var(--gray-border)">↺ Reset to defaults</button>
+  </div>
+
+  <!-- Add a bill -->
+  <div class="card" style="margin-top:8px">
+    <div class="card-title">➕ Add / Change a Bill</div>
+    <div class="input-row">
+      <div class="field"><label>Name</label><input type="text" id="bill-name" placeholder="e.g. Netflix"></div>
+      <div class="field" style="max-width:100px"><label>Due Date</label><input type="text" id="bill-due" placeholder="28th"></div>
+      <div class="field" style="max-width:110px"><label>Amount ($)</label><input type="number" id="bill-amt" placeholder="0"></div>
+      <div class="field" style="max-width:140px"><label>Section</label>
+        <select id="bill-type">
+          <option value="housing">🏠 Housing & Living</option>
+          <option value="debt">💳 Debt Minimum</option>
+          <option value="personal">🟣 Personal Sub</option>
+          <option value="biz">🟢 Business Sub</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-pink" onclick="addBill()">Add Permanently</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ BUSINESS ══ -->
+<div class="page" id="page-business">
+  <div class="card">
+    <div class="card-title">🌸 Biz Settings (deducted before split)</div>
+    <div class="input-row">
+      <div class="field"><label>Partner Cut ($)</label><input type="number" id="biz-partner" value="0" oninput="saveAll();refreshBiz()"></div>
+      <div class="field"><label>Referral Payout ($)</label><input type="number" id="biz-referral" value="0" oninput="saveAll();refreshBiz()"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      Income Log
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-outline btn-sm" onclick="saveAll();showSaveBadge()">💾 Save</button>
+        <button class="btn btn-pink btn-sm" onclick="addIncomeRow()">+ Add Payment</button>
+      </div>
+    </div>
+    <table class="log-table">
+      <thead><tr><th>Date</th><th>Client / Project</th><th style="text-align:right">Amount</th><th></th></tr></thead>
+      <tbody id="income-log"></tbody>
+    </table>
+    <div class="total-bar" style="margin-top:14px">
+      <div class="total-bar-item"><div class="total-bar-label">Gross</div><div class="total-bar-value" id="biz-gross">$0</div></div>
+      <div class="total-bar-item"><div class="total-bar-label">Deductions</div><div class="total-bar-value" id="biz-deductions">$0</div></div>
+      <div class="total-bar-item"><div class="total-bar-label">Net</div><div class="total-bar-value" id="biz-net">$0</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">💸 Split This Payment</div>
+    <div class="input-row">
+      <div class="field"><label>Payment Amount ($)</label><input type="number" id="split-amt" value="0" oninput="refreshSplit()"></div>
+    </div>
+    <div class="buckets">
+      <div class="bucket" style="background:var(--amber-light)">
+        <div class="bucket-icon">🐷</div>
+        <div class="bucket-name" style="color:var(--amber)">25% Taxes</div>
+        <div class="bucket-val" style="color:var(--amber)" id="sp-tax">$0</div>
+        <div class="bucket-sub" style="color:var(--amber)">set aside — do not spend</div>
+      </div>
+      <div class="bucket" style="background:var(--green-light)">
+        <div class="bucket-icon">🙏</div>
+        <div class="bucket-name" style="color:var(--green)">20% Donations</div>
+        <div class="bucket-val" style="color:var(--green)" id="sp-donate">$0</div>
+        <div class="bucket-sub" style="color:var(--green)">tithe / giving</div>
+      </div>
+      <div class="bucket" style="background:var(--pink-light)">
+        <div class="bucket-icon">💌</div>
+        <div class="bucket-name" style="color:var(--pink)">Kimberli Payment</div>
+        <input type="number" id="sp-kimberli-inp" value="0" placeholder="0" oninput="refreshSplit()"
+          style="width:90px;text-align:center;font-size:16px;font-weight:600;border:1.5px solid var(--pink-light);border-radius:8px;padding:4px 8px;color:var(--pink);background:white;margin:4px auto;display:block">
+        <div class="bucket-sub" style="color:var(--pink)">enter amount</div>
+      </div>
+    </div>
+    <div style="background:var(--blue-light);border-radius:var(--radius);padding:14px 16px;margin-top:10px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--blue);margin-bottom:3px">💰 Remainder → Savings</div>
+        <div style="font-family:'Playfair Display',serif;font-size:24px;color:var(--blue)" id="sp-remaining">$0</div>
+      </div>
+      <div style="font-size:12px;color:var(--blue);opacity:.8;max-width:180px;text-align:right">after taxes, donations &amp; Kimberli</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      Biz Subscriptions
+      <span style="font-size:13px;color:var(--gray);font-weight:400" id="biz-sub-total"></span>
+    </div>
+    <div id="biz-subs-list"></div>
+  </div>
+</div>
+
+<!-- ══ DEBT TRACKER ══ -->
+<div class="page" id="page-debt">
+  <div class="card">
+    <div class="card-title">
+      🔥 Debt Tracker — Avalanche Order
+      <button class="btn btn-pink btn-sm" onclick="showAddDebt()">+ Add Account</button>
+    </div>
+
+    <div id="add-debt-form" style="display:none;background:var(--pink-pale);border-radius:var(--radius);padding:14px;margin-bottom:14px;border:1px solid var(--pink-light)">
+      <div class="input-row">
+        <div class="field"><label>Account Name</label><input type="text" id="debt-name" placeholder="Macy's Card"></div>
+        <div class="field" style="max-width:130px"><label>Balance ($)</label><input type="number" id="debt-bal" placeholder="0"></div>
+        <div class="field" style="max-width:130px"><label>Min Payment ($)</label><input type="number" id="debt-min" placeholder="0"></div>
+        <div class="field" style="max-width:100px"><label>APR (%)</label><input type="number" id="debt-apr" placeholder="0" step="0.01"></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-pink" onclick="addDebt()">Add</button>
+        <button class="btn btn-outline" onclick="document.getElementById('add-debt-form').style.display='none'">Cancel</button>
+      </div>
+    </div>
+
+    <div style="padding:6px 0;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);border-bottom:2px solid var(--pink-light)">Accounts sorted highest APR first · log payments below each account</div>
+    <div id="debt-list"></div>
+
+    <div class="total-bar" style="margin-top:14px">
+      <div class="total-bar-item"><div class="total-bar-label">Total Debt</div><div class="total-bar-value" id="debt-total">$0</div></div>
+      <div class="total-bar-item"><div class="total-bar-label">Min Payments</div><div class="total-bar-value" id="debt-mins">$0</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MEDICAL DEBT ══ -->
+<div class="page" id="page-medical">
+  <div class="card">
+    <div class="card-title">
+      🏥 Medical Debt
+      <button class="btn btn-pink btn-sm" onclick="showAddMed()">+ Add</button>
+    </div>
+
+    <div id="add-med-form" style="display:none;background:var(--pink-pale);border-radius:var(--radius);padding:14px;margin-bottom:14px;border:1px solid var(--pink-light)">
+      <div class="input-row">
+        <div class="field"><label>Provider</label><input type="text" id="med-name" placeholder="Standup MRI"></div>
+        <div class="field" style="max-width:140px"><label>Original Balance ($)</label><input type="number" id="med-bal" placeholder="0"></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-pink" onclick="addMed()">Add</button>
+        <button class="btn btn-outline" onclick="document.getElementById('add-med-form').style.display='none'">Cancel</button>
+      </div>
+    </div>
+
+    <div id="med-list"></div>
+
+    <div class="total-bar" style="margin-top:14px">
+      <div class="total-bar-item"><div class="total-bar-label">Total Remaining</div><div class="total-bar-value" id="med-total">$0</div></div>
+      <div class="total-bar-item"><div class="total-bar-label">Total Paid</div><div class="total-bar-value" id="med-paid-total">$0</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HISTORY ══ -->
+<div class="page" id="page-history">
+  <div class="card">
+    <div class="card-title">📅 Monthly History</div>
+    <p style="font-size:13px;color:var(--gray);margin-bottom:16px">Hit <strong>"Save This Month"</strong> in the top right at the end of each month. It downloads a clean summary you can save to your files. Past months appear here.</p>
+    <div class="history-grid" id="history-grid"></div>
+    <div class="empty" id="history-empty" style="display:none">No months saved yet. Hit "⬇ Save This Month" at the top right to record this month.</div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<div class="savebadge" id="savebadge">✓ Saved</div>
+
+<script>
+// ── DEFAULTS ──
+const DEFAULT_BILLS = [
+  {id:1,name:'Rent / Housing',due:'1st',amt:1500,type:'housing'},
+  {id:2,name:'Nissan Car Lease',due:'23rd',amt:410,type:'housing'},
+  {id:3,name:'Geico Car Insurance',due:'15th',amt:200,type:'housing'},
+  {id:4,name:'Groceries',due:'monthly',amt:0,type:'housing'},
+  {id:5,name:"Chloe's Dog Food",due:'monthly',amt:120,type:'housing'},
+  {id:6,name:'Health Insurance (BCBS)',due:'monthly',amt:370,type:'housing'},
+  {id:7,name:'Apple iCloud',due:'6th',amt:10,type:'personal'},
+  {id:8,name:'Spotify',due:'8th',amt:12,type:'personal'},
+  {id:9,name:'Disney Annual Pass',due:'28th',amt:35,type:'personal'},
+  {id:10,name:'Echelon',due:'monthly',amt:10,type:'personal'},
+  {id:11,name:'Massages',due:'monthly',amt:0,type:'personal'},
+  {id:12,name:'Nails',due:'monthly',amt:120,type:'personal'},
+  {id:13,name:'Dog Grooming',due:'monthly',amt:0,type:'personal'},
+  {id:14,name:"Macy's Card",due:'9th',amt:30,type:'debt'},
+  {id:15,name:'Chase Card $1,859',due:'7th',amt:50,type:'debt'},
+  {id:16,name:'Barclaycard',due:'20th',amt:161,type:'debt'},
+  {id:17,name:'Fourleaf LOC',due:'9th',amt:72,type:'debt'},
+  {id:18,name:'Apple Credit Card',due:'11th',amt:55,type:'debt'},
+  {id:19,name:'Tax Plan',due:'15th',amt:250,type:'debt'},
+  {id:20,name:'Power Installment Loan',due:'4th',amt:400,type:'debt'},
+  
+  {id:22,name:'HoneyBook',due:'20th',amt:49,type:'biz'},
+  {id:23,name:'biBERK Insurance',due:'1st',amt:42,type:'biz'},
+  {id:24,name:'Google Workspace',due:'2nd',amt:28,type:'biz'},
+  {id:25,name:'Adobe Creative Cloud',due:'3rd',amt:60,type:'biz'},
+  {id:26,name:'T-Mobile',due:'13th',amt:65,type:'biz'},
+  {id:27,name:'Canva',due:'17th',amt:13,type:'biz'},
+  {id:28,name:'UPS Mailbox',due:'20th',amt:130,type:'biz'},
+  {id:29,name:'Notion',due:'20th',amt:24,type:'biz'},
+  {id:30,name:'Showit',due:'24th',amt:26,type:'biz'},
+  {id:31,name:'Claude',due:'28th',amt:20,type:'biz'},
+  {id:32,name:'Gusto',due:'monthly',amt:6,type:'biz'},{id:33,name:'Facials',due:'monthly',amt:0,type:'personal'},{id:34,name:'Roth IRA Contribution',due:'monthly',amt:0,type:'personal'},{id:34,name:'Roth IRA Contribution',due:'monthly',amt:0,type:'personal'},
+];
+
+const DEFAULT_DEBTS = [
+  {id:1,name:'HoneyBook Capital',bal:3882,min:195,apr:17,total:5000,payments:[]},
+  {id:2,name:'Macy's Card',bal:583,min:30,apr:35,total:6000,payments:[]},
+  {id:3,name:'Chase Card $1,859',bal:1796,min:50,apr:25,total:2000,payments:[]},
+  {id:4,name:'Barclaycard',bal:6150,min:161,apr:18.74,total:6400,payments:[]},
+  {id:5,name:'Fourleaf LOC',bal:5998,min:72,apr:18,total:6000,payments:[]},
+  {id:6,name:'Apple Credit Card',bal:3801,min:55,apr:22,total:6000,payments:[]},
+  {id:7,name:'Tax Plan',bal:15500,min:250,apr:3,total:16000,payments:[]},
+  {id:8,name:'Power Installment Loan',bal:14000,min:400,apr:0,total:14400,payments:[]},
+  {id:9,name:'Mom Payoff Loan',bal:4600,min:25,apr:0,total:5000,payments:[]},
+];;
+
+const DEFAULT_MEDICAL = [
+  {id:1,name:'Standup MRI',bal:480,original:480,paid:0},
+  {id:2,name:'Anesthesia',bal:931,original:931,paid:0},
+  {id:3,name:'Zwanger',bal:900,original:900,paid:0},
+  {id:4,name:'TGH',bal:88,original:88,paid:0},
+];;
+
+// ── STATE ──
+let state = {
+  salary: 4198,
+  bills: [],
+  debts: [],
+  medical: [],
+  incomeLog: [],
+  bizPartner: 0,
+  bizReferral: 0,
+  bizAcademy: 0,
+  ytd: 29146,
+  goal: 60000,
+  history: [],
+};
+
+// ── STORAGE ──
+const KEY = 'kbd_v1';
+function saveAll() {
+  // collect live values
+  state.salary = +gv('salary-inp') || 0;
+  state.bizPartner = +gv('biz-partner') || 0;
+  state.bizReferral = +gv('biz-referral') || 0;
+  state.bizAcademy = +gv('biz-academy') || 0;
+  state.ytd = +gv('ytd-inp') || 0;
+  state.goal = +gv('goal-inp') || 60000;
+  localStorage.setItem(KEY, JSON.stringify(state));
+  showSaveBadge();
+}
+
+function loadAll() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) {
+      const s = JSON.parse(raw);
+      state = {...state, ...s};
+    } else {
+      state.bills = DEFAULT_BILLS.map(b=>({...b}));
+      state.debts = DEFAULT_DEBTS.map(d=>({...d}));
+      state.medical = DEFAULT_MEDICAL.map(m=>({...m}));
+    }
+    if (!state.bills || !state.bills.length) state.bills = DEFAULT_BILLS.map(b=>({...b}));
+    if (!state.debts || !state.debts.length) state.debts = DEFAULT_DEBTS.map(d=>({...d}));
+    if (!state.medical || !state.medical.length) state.medical = DEFAULT_MEDICAL.map(m=>({...m}));
+    if (!state.incomeLog) state.incomeLog = [];
+    if (!state.history) state.history = [];
+  } catch(e) {
+    state.bills = DEFAULT_BILLS.map(b=>({...b}));
+    state.debts = DEFAULT_DEBTS.map(d=>({...d}));
+    state.medical = DEFAULT_MEDICAL.map(m=>({...m}));
+  }
+}
+
+// ── HELPERS ──
+const ge = id => document.getElementById(id);
+const gv = id => { try { return ge(id).value; } catch(e) { return '0'; }};
+const sv = (id,v) => { try { ge(id).value = v; } catch(e) {}};
+const F = v => '$' + Math.abs(Math.round(v*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+let saveBadgeTimer;
+function showSaveBadge() {
+  const b = ge('savebadge'); b.classList.add('show');
+  clearTimeout(saveBadgeTimer);
+  saveBadgeTimer = setTimeout(()=>b.classList.remove('show'), 1800);
+}
+
+// ── TABS ──
+function showTab(name, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  ge('page-'+name).classList.add('active');
+  btn.classList.add('active');
+  refreshAll();
+}
+
+// ── BILLS ──
+function showAddBill() {
+  const f = ge('add-bill-form');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+function addBill() {
+  const name = ge('bill-name').value.trim();
+  const amt = +ge('bill-amt').value || 0;
+  const due = ge('bill-due').value.trim();
+  const type = ge('bill-type').value;
+  if (!name) return;
+  state.bills.push({id: Date.now(), name, amt, due, type});
+  ge('bill-name').value=''; ge('bill-amt').value=''; ge('bill-due').value='';
+  ge('add-bill-form').style.display='none';
+  saveAll(); renderBills();
+}
+function removeBill(id) {
+  state.bills = state.bills.filter(b=>b.id!==id);
+  saveAll(); renderBills();
+}
+function updateBillAmt(id, val) {
+  const b = state.bills.find(b=>b.id===id);
+  if (b) b.amt = +val || 0;
+  saveAll(); refreshAll();
+}
+
+function getCurrentMonth() {
+  const now = new Date();
+  return now.toLocaleString('en-US',{month:'long',year:'numeric'});
+}
+
+function getPaidKey() { return 'paid_' + getCurrentMonth().replace(' ','_'); }
+
+function getBillPaid(id) {
+  const obj = getBillPaidObj(id);
+  return obj ? !!obj.checked : false;
+}
+
+function setBillPaid(id, val) {
+  try {
+    const key = getPaidKey();
+    const paid = JSON.parse(localStorage.getItem(key)||'{}');
+    if (val) {
+      paid[id] = {checked: true, date: ''};
+    } else {
+      delete paid[id];
+    }
+    localStorage.setItem(key, JSON.stringify(paid));
+  } catch(e) {}
+  renderBills();
+}
+
+function setBillPayDate(id, dateVal) {
+  try {
+    const key = getPaidKey();
+    const paid = JSON.parse(localStorage.getItem(key)||'{}');
+    if (paid[id]) paid[id].date = dateVal;
+    else paid[id] = {checked: true, date: dateVal};
+    localStorage.setItem(key, JSON.stringify(paid));
+  } catch(e) {}
+}
+
+function getBillPaidObj(id) {
+  try {
+    const paid = JSON.parse(localStorage.getItem(getPaidKey())||'{}');
+    const v = paid[id];
+    if (!v) return null;
+    if (typeof v === 'boolean') return {checked: v, date: ''};
+    return v;
+  } catch(e) { return null; }
+}
+
+function resetBillsPaid() {
+  if (!confirm('Reset all paid checkmarks for ' + getCurrentMonth() + '? This starts a fresh month.')) return;
+  localStorage.removeItem(getPaidKey());
+  renderBills();
+}
+
+function renderBills() {
+  const sections = {
+    housing: {id:'bills-housing', sub:'sub-housing', color:'var(--green)'},
+    debt:    {id:'bills-debt',    sub:'sub-debt',    color:'var(--red)'},
+    personal:{id:'bills-personal',sub:'sub-personal',color:'var(--purple)'},
+    biz:     {id:'bills-biz',     sub:'sub-biz',     color:'var(--green)'},
+  };
+
+  let totalBills=0, paidBills=0, totalCount=0, paidCount=0;
+
+  Object.entries(sections).forEach(([type, cfg]) => {
+    const el = ge(cfg.id); if(!el) return;
+    const group = state.bills.filter(b=>b.type===type).sort((a,b)=>(parseInt(a.due)||99)-(parseInt(b.due)||99));
+    if (!group.length) {
+      el.innerHTML='<div class="empty" style="padding:14px;font-size:13px">Nothing here yet — add one below.</div>';
+      return;
+    }
+    el.innerHTML = group.map(b=>{
+      const isPaid = getBillPaid(b.id);
+      totalBills += b.amt; totalCount++;
+      if(isPaid){ paidBills += b.amt; paidCount++; }
+      return `<div class="bill-row ${isPaid?'paid':''}">
+        <input type="checkbox" class="bill-chk" ${isPaid?'checked':''} onchange="setBillPaid(${b.id},this.checked)">
+        <span class="bill-name" style="font-size:14px">${b.name}</span>
+        <span class="bill-due" style="font-size:12px;color:var(--gray);text-align:center">${b.due||''}</span>
+        <span style="text-align:right"><input class="inline-amt" type="number" value="${b.amt}" onchange="updateBillAmt(${b.id},this.value)"></span>
+        <button class="del" onclick="removeBill(${b.id})">✕</button>
+      </div>`;
+    }).join('');
+    const sub = group.reduce((a,b)=>a+b.amt,0);
+    try{ ge(cfg.sub).textContent = F(sub); }catch(e){}
+  });
+
+  // Progress bar
+  const pct = totalCount>0 ? Math.round(paidCount/totalCount*100) : 0;
+  try{
+    ge('paid-bar-fill').style.width = pct+'%';
+    ge('paid-summary').textContent = paidCount+' of '+totalCount+' paid · '+F(paidBills)+' confirmed · '+F(totalBills-paidBills)+' still due';
+  }catch(e){}
+
+  refreshBillTotals();
+}
+
+function refreshBillTotals() {
+  const salary = +gv('salary-inp') || 0;
+  const total = state.bills.reduce((a,b)=>a+b.amt,0);
+  const left = salary - total;
+  const set = v => id => { try { ge(id).textContent=F(v); } catch(e){} };
+  ge('tb-salary').textContent = F(salary);
+  ge('tb-out').textContent = F(total);
+  ge('tb-left').textContent = F(left);
+  ge('tb-left').style.color = left < 0 ? 'white' : 'white';
+}
+
+// ── BUSINESS ──
+function addIncomeRow(date='',client='',amt='') {
+  const tbody = ge('income-log');
+  const id = Date.now();
+  const tr = document.createElement('tr');
+  tr.id = 'inc-'+id;
+  tr.innerHTML = `
+    <td><input type="text" value="${date}" placeholder="07/15" onchange="saveIncomeLog()"></td>
+    <td><input type="text" value="${client}" placeholder="Client name" onchange="saveIncomeLog()"></td>
+    <td><input type="number" value="${amt}" placeholder="0" style="text-align:right" oninput="saveIncomeLog();refreshBiz()"></td>
+    <td style="text-align:right"><button class="del" onclick="removeIncomeRow('inc-${id}')">✕</button></td>`;
+  tbody.appendChild(tr);
+}
+function removeIncomeRow(id) {
+  const el = ge(id); if(el) el.remove();
+  saveIncomeLog(); refreshBiz();
+}
+function saveIncomeLog() {
+  const rows = ge('income-log').querySelectorAll('tr');
+  state.incomeLog = Array.from(rows).map(tr => {
+    const ins = tr.querySelectorAll('input');
+    return {date:ins[0]?.value||'', client:ins[1]?.value||'', amt:+ins[2]?.value||0};
+  });
+  saveAll();
+  refreshBiz();
+  refreshOverview();
+}
+function renderIncomeLog() {
+  ge('income-log').innerHTML = '';
+  if (state.incomeLog && state.incomeLog.length) {
+    state.incomeLog.forEach(r => addIncomeRow(r.date, r.client, r.amt));
+  } else {
+    addIncomeRow();
+  }
+}
+
+function refreshBiz() {
+  const gross = state.incomeLog ? state.incomeLog.reduce((a,r)=>a+r.amt,0) : 0;
+  const partner = +gv('biz-partner')||0;
+  const referral = +gv('biz-referral')||0;
+  const academy = +gv('biz-academy')||0;
+  const deductions = partner + referral + academy;
+  const net = Math.max(0, gross - deductions);
+  ge('biz-gross').textContent = F(gross);
+  ge('biz-deductions').textContent = F(deductions);
+  ge('biz-net').textContent = F(net);
+
+  // biz sub total
+  const bizSubs = state.bills ? state.bills.filter(b=>b.type==='biz') : [];
+  const bizSubTotal = bizSubs.reduce((a,b)=>a+b.amt,0);
+  ge('biz-sub-total').textContent = F(bizSubTotal) + '/mo';
+
+  // render biz subs read-only
+  const el = ge('biz-subs-list');
+  if (!bizSubs.length) { el.innerHTML='<div class="empty">No biz subscriptions — add them in Bills & Subs tab.</div>'; return; }
+  el.innerHTML = bizSubs.map(b=>`
+    <div class="row">
+      <span class="row-label">${b.name}</span>
+      <span class="row-due">${b.due||''}</span>
+      <span class="row-amt">${F(b.amt)}</span>
+    </div>`).join('');
+}
+
+function refreshSplit() {
+  var splitAmt = parseFloat(document.getElementById('split-amt') ? document.getElementById('split-amt').value : 0) || 0;
+  var partner = parseFloat(document.getElementById('biz-partner') ? document.getElementById('biz-partner').value : 0) || 0;
+  var referral = parseFloat(document.getElementById('biz-referral') ? document.getElementById('biz-referral').value : 0) || 0;
+  var kimberliEl = document.getElementById('sp-kimberli-inp');
+  var kimberli = kimberliEl ? (parseFloat(kimberliEl.value) || 0) : 0;
+  var net = Math.max(0, splitAmt - partner - referral);
+  var taxes = net * 0.25;
+  var donations = net * 0.20;
+  var savings = Math.max(0, net - taxes - donations - kimberli);
+  var taxEl = document.getElementById('sp-tax');
+  var donEl = document.getElementById('sp-donate');
+  var savEl = document.getElementById('sp-remaining');
+  if (taxEl) taxEl.textContent = F(taxes);
+  if (donEl) donEl.textContent = F(donations);
+  if (savEl) savEl.textContent = F(savings);
+}
+
+// ── DEBT ──
+function showAddDebt() {
+  const f = ge('add-debt-form');
+  f.style.display = f.style.display==='none' ? 'block' : 'none';
+}
+function addDebt() {
+  const name = ge('debt-name').value.trim();
+  const bal = +ge('debt-bal').value||0;
+  const min = +ge('debt-min').value||0;
+  const apr = +ge('debt-apr').value||0;
+  if (!name) return;
+  state.debts.push({id:Date.now(), name, bal, min, apr});
+  ge('debt-name').value=''; ge('debt-bal').value=''; ge('debt-min').value=''; ge('debt-apr').value='';
+  ge('add-debt-form').style.display='none';
+  saveAll(); renderDebts();
+}
+function removeDebt(id) {
+  if (!confirm('Remove this account?')) return;
+  state.debts = state.debts.filter(d=>d.id!==id);
+  saveAll(); renderDebts();
+}
+function updateDebtBal(id, val) {
+  const d = state.debts.find(d=>d.id===id);
+  if (d) d.bal = +val||0;
+  saveAll(); refreshDebtTotals();
+}
+function logDebtPayment(id) {
+  const d = state.debts.find(d=>d.id===id);
+  const inp = ge('pay-inp-'+id);
+  if (!d || !inp) return;
+  const amt = +inp.value||0;
+  if (!amt) { inp.style.borderColor='var(--red)'; setTimeout(()=>inp.style.borderColor='',1200); return; }
+  // deduct from balance
+  d.bal = Math.max(0, d.bal - amt);
+  // keep payment history
+  if (!d.payments) d.payments = [];
+  d.payments.push({amt, date: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'})});
+  // update total if bal was higher than original total
+  if (d.bal > (d.total||0)) d.total = d.bal + amt;
+  inp.value = '';
+  saveAll();
+  renderDebts();
+  refreshOverview();
+}
+function renderDebts() {
+  const el = ge('debt-list');
+  const sorted = [...state.debts].sort((a,b)=>b.apr-a.apr);
+  if (!sorted.length) { el.innerHTML='<div class="empty">No accounts added.</div>'; return; }
+  el.innerHTML = sorted.map(d=>{
+    const total = d.total || d.bal;
+    const paymentSum = (d.payments||[]).reduce((a,p)=>a+p.amt,0);
+    const allPaid = Math.max(paymentSum, total - d.bal);
+    const pct = total>0 ? Math.min(100,Math.round(allPaid/total*100)) : 0;
+    const barColor = d.apr>=25?'var(--red)':d.apr>=18?'var(--amber)':'var(--pink)';
+    const isNissan = d.name && d.name.toLowerCase().includes('nissan');
+    const extraNote = isNissan ? ' · lease ends Jan 2027' : '';
+    const recentPay = (d.payments||[]).slice(-3).reverse();
+    return `<div class="debt-item">
+      <div style="grid-column:1">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+          <div>
+            <div class="debt-name">${d.name}</div>
+            <div class="debt-sub">${d.apr>0?d.apr+'% APR':'0%'}${extraNote} · min ${F(d.min)}/mo</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-family:'Playfair Display',serif;font-size:20px;color:var(--pink)">${F(d.bal)}</div>
+            <div style="font-size:10px;color:var(--gray)">remaining</div>
+          </div>
+        </div>
+        <div style="margin:6px 0 8px">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--gray);margin-bottom:3px">
+            <span>${F(allPaid)} paid total</span><span>${pct}% paid off</span>
+          </div>
+          <div style="background:var(--gray-border);border-radius:99px;height:6px;overflow:hidden">
+            <div style="width:${pct}%;height:100%;border-radius:99px;background:${barColor};transition:width .4s"></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;background:var(--gray-light);border-radius:8px;padding:8px 10px">
+          <input type="number" placeholder="payment amount" id="pay-inp-${d.id}"
+            style="flex:1;border:1.5px solid var(--gray-border);border-radius:6px;padding:6px 10px;font-size:13px;font-family:'Inter',sans-serif">
+          <button class="btn btn-pink btn-sm" onclick="logDebtPayment(${d.id})">Log Payment</button>
+          <button class="del" onclick="removeDebt(${d.id})" title="Remove account">✕</button>
+        </div>
+        ${recentPay.length ? `<div style="margin-top:6px;">${recentPay.map(p=>`<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray);padding:2px 0"><span>${p.date}</span><span style="color:var(--green)">-${F(p.amt)}</span></div>`).join('')}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+  refreshDebtTotals();
+}
+function refreshDebtTotals() {
+  const total = state.debts.reduce((a,d)=>a+d.bal,0);
+  const mins = state.debts.reduce((a,d)=>a+d.min,0);
+  ge('debt-total').textContent = F(total);
+  ge('debt-mins').textContent = F(mins);
+}
+
+// ── MEDICAL ──
+function showAddMed() {
+  const f = ge('add-med-form');
+  f.style.display = f.style.display==='none' ? 'block' : 'none';
+}
+function addMed() {
+  const name = ge('med-name').value.trim();
+  const bal = +ge('med-bal').value||0;
+  if (!name) return;
+  state.medical.push({id:Date.now(), name, bal});
+  ge('med-name').value=''; ge('med-bal').value='';
+  ge('add-med-form').style.display='none';
+  saveAll(); renderMedical();
+}
+function removeMed(id) {
+  state.medical = state.medical.filter(m=>m.id!==id);
+  saveAll(); renderMedical();
+}
+function confirmRemoveMed(id) {
+  const m = state.medical.find(m=>m.id===id);
+  if (!m) return;
+  if (!confirm(`Remove "${m.name}" from your list? Only do this when it's fully paid off.`)) return;
+  removeMed(id);
+}
+function updateMedBal(id, val) {
+  const m = state.medical.find(m=>m.id===id);
+  if (m) m.bal = +val||0;
+  saveAll(); refreshMedTotal();
+}
+function renderMedical() {
+  const el = ge('med-list');
+  if (!state.medical.length) { el.innerHTML='<div class="empty">All clear! 🎉</div>'; refreshMedTotal(); return; }
+  const sorted = [...state.medical].sort((a,b)=>b.bal-a.bal);
+  el.innerHTML = sorted.map(m=>{
+    const orig = m.original || m.bal;
+    const paymentSum = (m.payments||[]).reduce((a,p)=>a+p.amt, m.paid||0);
+    const allPaid = Math.max(paymentSum, orig - m.bal);
+    const pct = orig>0 ? Math.min(100,Math.round(allPaid/orig*100)) : 0;
+    const recentPay = (m.payments||[]).slice(-3).reverse();
+    return `<div style="padding:12px 0;border-bottom:1px solid var(--gray-border)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+        <div><div class="debt-name">${m.name}</div><div class="debt-sub">${F(allPaid)} paid · ${F(m.bal)} remaining</div></div>
+        <div style="text-align:right">
+          <div style="font-family:'Playfair Display',serif;font-size:20px;color:var(--pink)">${F(m.bal)}</div>
+          <button class="btn btn-red btn-sm" style="margin-top:4px" onclick="confirmRemoveMed(${m.id})">✕ paid off</button>
+        </div>
+      </div>
+      <div style="margin:6px 0 8px">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--gray);margin-bottom:3px">
+          <span>${F(allPaid)} paid</span><span>${pct}% paid off</span>
+        </div>
+        <div style="background:var(--gray-border);border-radius:99px;height:6px;overflow:hidden">
+          <div style="width:${pct}%;height:100%;border-radius:99px;background:var(--green);transition:width .4s"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;background:var(--gray-light);border-radius:8px;padding:8px 10px">
+        <input type="number" placeholder="payment amount" id="med-pay-inp-${m.id}"
+          style="flex:1;border:1.5px solid var(--gray-border);border-radius:6px;padding:6px 10px;font-size:13px;font-family:'Inter',sans-serif">
+        <button class="btn btn-pink btn-sm" onclick="logMedPaymentDirect(${m.id})">Log Payment</button>
+      </div>
+      ${recentPay.length ? `<div style="margin-top:6px">${recentPay.map(p=>`<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray);padding:2px 0"><span>${p.date}</span><span style="color:var(--green)">-${F(p.amt)}</span></div>`).join('')}</div>` : ''}
+    </div>`;
+  }).join('');
+  // update provider dropdown
+  try{
+    const sel = ge('med-pay-provider');
+    if(sel) sel.innerHTML = state.medical.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+  }catch(e){}
+  refreshMedTotal();
+}
+function logMedPaymentDirect(id) {
+  const m = state.medical.find(m=>m.id===id);
+  const inp = ge('med-pay-inp-'+id);
+  if (!m || !inp) return;
+  const amt = +inp.value||0;
+  if (!amt) { inp.style.borderColor='var(--red)'; setTimeout(()=>inp.style.borderColor='',1200); return; }
+  m.bal = Math.max(0, m.bal - amt);
+  m.paid = (m.paid||0) + amt;
+  if (!m.payments) m.payments = [];
+  m.payments.push({amt, date: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'})});
+  inp.value = '';
+  saveAll(); renderMedical(); refreshOverview();
+}
+
+
+function refreshMedTotal() {
+  const total = state.medical.reduce((a,m)=>a+m.bal,0);
+  const paid = state.medical.reduce((a,m)=>a+(m.paid||0),0);
+  try{ge('med-total').textContent = F(total);}catch(e){}
+  try{ge('med-paid-total').textContent = F(paid);}catch(e){}
+}
+
+// ── OVERVIEW ──
+function refreshOverview() {
+  // always read from state directly — don't rely on input fields being rendered
+  const salary = state.salary || 4198;
+  const bills = state.bills ? state.bills.reduce((a,b)=>a+b.amt,0) : 0;
+  const left = salary - bills;
+  const debtTotal = state.debts ? state.debts.reduce((a,d)=>a+d.bal,0) : 0;
+  const medTotal = state.medical ? state.medical.reduce((a,m)=>a+m.bal,0) : 0;
+  const bizGross = state.incomeLog ? state.incomeLog.reduce((a,r)=>a+r.amt,0) : 0;
+  const partner2 = state.bizPartner || 0;
+  const bizNet = Math.max(0, bizGross - partner2);
+  const ytd = state.ytd || 36596;
+  const goal = state.goal || 60000;
+
+  // stat bars
+  const set = (id, val) => { try{ ge(id).textContent = F(val); }catch(e){} };
+  set('ov-salary', salary);
+  set('ov-out', bills);
+  set('ov-left', left);
+  set('ov-biz-stat', bizGross);
+
+  // snapshot rows
+  set('ov2-salary', salary);
+  set('ov2-bills', bills);
+  set('ov2-left', left);
+  try{
+    const lvEl = ge('ov2-left');
+    lvEl.style.color = left < 0 ? 'var(--red)' : 'var(--green)';
+  }catch(e){}
+  set('ov2-biz', bizGross);
+  set('ov2-partner', partner2);
+  set('ov2-biznet', bizNet);
+  set('ov2-debt', debtTotal);
+  set('ov2-med', medTotal);
+
+  // ytd bar
+  const pct = Math.min(100, Math.round(ytd/goal*100));
+  const rem = Math.max(0, goal-ytd);
+  try{ ge('ytd-pct-label').textContent = pct + '% there'; }catch(e){}
+  try{ ge('ytd-rem-label').textContent = F(rem) + ' to go'; }catch(e){}
+  try{ ge('ytd-bar').style.width = pct + '%'; }catch(e){}
+  // sync ytd input
+  try{ if(ge('ytd-inp').value=='0') ge('ytd-inp').value = ytd; }catch(e){}
+}
+
+// ── HISTORY ──
+function renderHistory() {
+  const el = ge('history-grid');
+  const emp = ge('history-empty');
+  if (!state.history || !state.history.length) {
+    el.innerHTML=''; emp.style.display='block'; return;
+  }
+  emp.style.display='none';
+  el.innerHTML = [...state.history].reverse().map(h=>{
+    const bizNet = (h.biz||0)-(h.partner||0);
+    return `<div class="history-card" style="cursor:default">
+      <div class="history-month">${h.month}</div>
+      <div style="font-size:11px;color:var(--gray);margin-bottom:10px">${h.date ? new Date(h.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : ''}</div>
+      
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--green);margin:8px 0 4px;font-weight:700;border-bottom:1px solid var(--green-light);padding-bottom:3px">💚 Salary</div>
+      <div class="history-line"><span>Take-Home</span><span style="color:var(--green);font-weight:500">${F(h.salary||0)}</span></div>
+      <div class="history-line"><span>Bills &amp; Subs</span><span style="color:var(--red)">-${F(h.bills||0)}</span></div>
+      <div class="history-line" style="font-weight:600;border-top:1px solid var(--gray-border);margin-top:3px;padding-top:3px"><span>Left Over</span><span style="color:${(h.left||0)>=0?'var(--green)':'var(--red)'}">${F(h.left||0)}</span></div>
+
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--pink);margin:10px 0 4px;font-weight:700;border-bottom:1px solid var(--pink-light);padding-bottom:3px">🌸 Business</div>
+      <div class="history-line"><span>Gross Income</span><span style="color:var(--green);font-weight:500">${F(h.biz||0)}</span></div>
+      ${h.partner ? `<div class="history-line"><span>Partner Cuts</span><span style="color:var(--red)">-${F(h.partner)}</span></div>` : ''}
+      <div class="history-line"><span>Net Biz</span><span style="color:var(--green)">${F(bizNet)}</span></div>
+      <div class="history-line"><span>→ Taxes (25%)</span><span>${F(bizNet*.25)}</span></div>
+      <div class="history-line"><span>→ Donations (20%)</span><span>${F(bizNet*.20)}</span></div>
+      <div class="history-line"><span>→ Savings (rest)</span><span style="color:var(--blue)">${F(Math.max(0,bizNet-(bizNet*.25)-(bizNet*.20)))}</span></div>
+
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--red);margin:10px 0 4px;font-weight:700;border-bottom:1px solid var(--red-light);padding-bottom:3px">🔥 Debt</div>
+      <div class="history-line"><span>Total Debt Remaining</span><span style="color:var(--red)">${F(h.debt||0)}</span></div>
+      <div class="history-line"><span>Medical Remaining</span><span style="color:var(--red)">${F(h.med||0)}</span></div>
+      ${h.medPaid ? `<div class="history-line"><span>Medical Paid</span><span style="color:var(--green)">+${F(h.medPaid)}</span></div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ── DOWNLOAD MONTH ──
+function getPaidStatusForMonth() {
+  try {
+    const paid = JSON.parse(localStorage.getItem(getPaidKey())||'{}');
+    return paid;
+  } catch(e) { return {}; }
+}
+function resetMonthBills() {
+  if (!confirm('Clear all paid checkmarks and dates for ' + getCurrentMonth() + '? Use this at the start of each new month.')) return;
+  localStorage.removeItem(getPaidKey());
+  localStorage.removeItem('paydate_' + getPaidKey());
+  renderBills();
+}
+
+function downloadMonth() {
+  const now = new Date();
+  const month = now.toLocaleString('en-US',{month:'long',year:'numeric'});
+  const salary = state.salary||0;
+  const bills = state.bills ? state.bills.reduce((a,b)=>a+b.amt,0) : 0;
+  const paidStatus = getPaidStatusForMonth();
+  const paidBillsList = state.bills ? state.bills.filter(b=>paidStatus[b.id]) : [];
+  const unpaidBillsList = state.bills ? state.bills.filter(b=>!paidStatus[b.id]) : [];
+  const paidAmt = paidBillsList.reduce((a,b)=>a+b.amt,0);
+  const unpaidAmt = unpaidBillsList.reduce((a,b)=>a+b.amt,0);
+  const left = salary - bills;
+  const bizGross = state.incomeLog ? state.incomeLog.reduce((a,r)=>a+r.amt,0) : 0;
+  const debtTotal = state.debts ? state.debts.reduce((a,d)=>a+d.bal,0) : 0;
+  const medTotal = state.medical ? state.medical.reduce((a,m)=>a+m.bal,0) : 0;
+
+  // Save to history
+  state.history = state.history || [];
+  const existing = state.history.findIndex(h=>h.month===month);
+  const partner = state.bizPartner||0;
+  const medPaidTotal = state.medical ? state.medical.reduce((a,m)=>a+(m.paid||0),0) : 0;
+  const kimberli = state.bizKimberli||0;
+  const entry = {month, salary, bills, left, biz:bizGross, partner, kimberli, debt:debtTotal, med:medTotal, medPaid:medPaidTotal, date:now.toISOString()};
+  if (existing>=0) state.history[existing]=entry; else state.history.push(entry);
+  saveAll();
+
+  // Build printable HTML
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<title>${month} · My Finances</title>
+<style>
+body{font-family:Arial,sans-serif;max-width:600px;margin:40px auto;color:#111;padding:0 20px}
+h1{color:#C2185B;font-size:22px;margin-bottom:4px}
+h2{font-size:14px;color:#6B7280;font-weight:400;margin-bottom:28px}
+h3{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#C2185B;margin:24px 0 10px;border-bottom:1px solid #FCE4EC;padding-bottom:4px}
+.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #F3F4F6;font-size:14px}
+.total{display:flex;justify-content:space-between;padding:8px 0;font-weight:600;font-size:15px;border-top:2px solid #C2185B;margin-top:4px}
+
+/* ── PIN SCREEN ── */
+#pin-screen{position:fixed;inset:0;background:var(--pink);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+#pin-screen h1{font-family:var(--serif);color:white;font-size:28px;letter-spacing:.02em}
+#pin-screen p{color:rgba(255,255,255,.75);font-size:14px}
+.pin-dots{display:flex;gap:12px;margin:8px 0}
+.pin-dot{width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,.3);transition:.2s}
+.pin-dot.filled{background:white}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+.pin-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:white;width:70px;height:70px;border-radius:50%;font-size:22px;font-family:var(--sans);cursor:pointer;transition:.15s}
+.pin-btn:hover{background:rgba(255,255,255,.3)}
+.pin-btn:active{transform:scale(.95)}
+.pin-error{color:rgba(255,255,255,.9);font-size:13px;background:rgba(0,0,0,.2);padding:8px 18px;border-radius:99px;opacity:0;transition:opacity .3s}
+.pin-error.show{opacity:1}
+.pin-change{background:none;border:none;color:rgba(255,255,255,.6);font-size:12px;cursor:pointer;text-decoration:underline;margin-top:8px}
+
+/* ── BILL ROWS WITH CHECKBOX ── */
+.bill-row{display:grid;grid-template-columns:28px 1fr 70px 100px 88px auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--gray-border);transition:.2s}
+.bill-row.paid{background:var(--green-light);border-radius:6px;padding:9px 8px}
+.bill-row.paid .bill-name{text-decoration:line-through;color:var(--gray)}
+.bill-row.paid .bill-due{color:var(--gray)}
+.bill-chk{width:18px;height:18px;accent-color:var(--pink);cursor:pointer}
+.paid-bar-wrap{background:var(--gray-border);border-radius:99px;height:8px;overflow:hidden;margin:10px 0 4px}
+.paid-bar-fill{height:100%;border-radius:99px;background:var(--green);transition:width .4s}
+.paid-summary{font-size:12px;color:var(--gray);margin-bottom:8px}
+</style></head><body>
+
+<div id="pin-screen">
+  <h1>🌸 My Dashboard</h1>
+  <p>Enter your PIN to continue</p>
+  <div class="pin-dots">
+    <div class="pin-dot" id="d0"></div>
+    <div class="pin-dot" id="d1"></div>
+    <div class="pin-dot" id="d2"></div>
+    <div class="pin-dot" id="d3"></div>
+  </div>
+  <div class="pin-error" id="pin-error">Incorrect PIN — try again</div>
+  <div class="pin-pad" id="pin-pad">
+    <button class="pin-btn" id="pb1">1</button>
+    <button class="pin-btn" id="pb2">2</button>
+    <button class="pin-btn" id="pb3">3</button>
+    <button class="pin-btn" id="pb4">4</button>
+    <button class="pin-btn" id="pb5">5</button>
+    <button class="pin-btn" id="pb6">6</button>
+    <button class="pin-btn" id="pb7">7</button>
+    <button class="pin-btn" id="pb8">8</button>
+    <button class="pin-btn" id="pb9">9</button>
+    <button class="pin-btn" id="pbclr" style="font-size:14px">CLR</button>
+    <button class="pin-btn" id="pb0">0</button>
+    <button class="pin-btn" id="pbbk" style="font-size:18px">⌫</button>
+  </div>
+  <button class="pin-change" id="pin-change-btn">change PIN</button>
+</div>
+
+<h1>Financial Summary · ${month}</h1>
+<h2>Monthly Financial Summary</h2>
+<h3>Salary</h3>
+<div class="row"><span>Take-Home</span><span>${F(salary)}</span></div>
+<div class="row"><span>Total Bills &amp; Subscriptions</span><span>-${F(bills)}</span></div>
+<div class="total"><span>Left Over</span><span>${F(left)}</span></div>
+<h3>Bills Paid This Month (${paidBillsList.length} of ${state.bills?state.bills.length:0})</h3>
+${paidBillsList.map(b=>`<div class="row"><span style="color:#1A7A5E">✓ ${b.name}</span><span>${F(b.amt)}</span></div>`).join('')}
+<div class="row" style="font-weight:500"><span>Paid so far</span><span style="color:#1A7A5E">${F(paidAmt)}</span></div>
+${unpaidBillsList.length ? `<div class="row"><span style="color:#B91C1C">Still due (${unpaidBillsList.length})</span><span style="color:#B91C1C">-${F(unpaidAmt)}</span></div>` : ''}
+<h3>Business</h3>
+<div class="row"><span>Gross Biz Income</span><span>${F(bizGross)}</span></div>
+${state.incomeLog ? state.incomeLog.filter(r=>r.amt>0).map(r=>`<div class="row"><span style="padding-left:12px;color:#6B7280">${r.client||'—'} (${r.date||''})</span><span>${F(r.amt)}</span></div>`).join('') : ''}
+<h3>Debt Snapshot</h3>
+${state.debts ? state.debts.map(d=>`<div class="row"><span>${d.name}</span><span>${F(d.bal)}</span></div>`).join('') : ''}
+<div class="total"><span>Total Debt</span><span>${F(debtTotal)}</span></div>
+<h3>Medical Debt</h3>
+${state.medical && state.medical.length ? state.medical.map(m=>`<div class="row"><span>${m.name}</span><span>${F(m.bal)}</span></div>`).join('') : '<div class="row"><span>None</span><span>—</span></div>'}
+<div class="total"><span>Total Medical</span><span>${F(medTotal)}</span></div>
+<p style="margin-top:32px;font-size:11px;color:#9CA3AF">Generated ${now.toLocaleDateString()} · Financial Dashboard</p>
+</body></html>`;
+
+  const blob = new Blob([html], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `KBD_${month.replace(' ','_')}.html`;
+  a.click();
+  renderHistory();
+}
+
+// ── REFRESH ALL ──
+function refreshAll() {
+  sv('salary-inp', state.salary||4198);
+  sv('biz-partner', state.bizPartner||0);
+  sv('biz-referral', state.bizReferral||0);
+  sv('biz-kimberli', state.bizKimberli||0);
+  sv('ytd-inp', state.ytd||29146);
+  sv('goal-inp', state.goal||60000);
+  renderBills();
+  refreshBiz();
+  refreshSplit();
+  renderDebts();
+  renderMedical();
+  renderHistory();
+  refreshOverview();
+}
+
+
+// ── PIN ──
+const DEFAULT_PIN = '2424';
+const PIN_KEY = 'kbd_pin';
+const PIN_SESSION = 'kbd_unlocked';
+let pinEntry = '';
+
+function getPin() {
+  try { return localStorage.getItem(PIN_KEY) || DEFAULT_PIN; }
+  catch(ex) { return DEFAULT_PIN; }
+}
+
+function pinPress(n) {
+  if (pinEntry.length >= 4) return;
+  pinEntry += String(n);
+  for (var i = 0; i < 4; i++) {
+    var dot = document.getElementById('d' + i);
+    if (dot) dot.classList.toggle('filled', i < pinEntry.length);
+  }
+  if (pinEntry.length === 4) {
+    setTimeout(function() {
+      if (pinEntry === getPin()) {
+        try { sessionStorage.setItem(PIN_SESSION, '1'); } catch(ex) {}
+        var ps = document.getElementById('pin-screen');
+        if (ps) ps.style.display = 'none';
+        pinEntry = '';
+        loadAll(); refreshAll();
+        try { document.getElementById('current-month-label').textContent = getCurrentMonth(); } catch(ex) {}
+      } else {
+        var err = document.getElementById('pin-error');
+        if (err) {
+          err.classList.add('show');
+          setTimeout(function(){ err.classList.remove('show'); }, 1800);
+        }
+        pinEntry = '';
+        for (var j = 0; j < 4; j++) {
+          var d = document.getElementById('d' + j);
+          if (d) d.classList.remove('filled');
+        }
+      }
+    }, 150);
+  }
+}
+
+function pinBack() {
+  if (!pinEntry.length) return;
+  pinEntry = pinEntry.slice(0, -1);
+  for (var i = 0; i < 4; i++) {
+    var dot = document.getElementById('d' + i);
+    if (dot) dot.classList.toggle('filled', i < pinEntry.length);
+  }
+}
+
+function pinClear() {
+  pinEntry = '';
+  for (var i = 0; i < 4; i++) {
+    var dot = document.getElementById('d' + i);
+    if (dot) dot.classList.remove('filled');
+  }
+}
+
+function changePin() {
+  var np = prompt('Enter a new 4-digit PIN:');
+  if (!np || !/^\d{4}$/.test(np)) { alert('PIN must be exactly 4 digits.'); return; }
+  var c2 = prompt('Confirm new PIN:');
+  if (np !== c2) { alert("PINs do not match."); return; }
+  try { localStorage.setItem(PIN_KEY, np); } catch(ex) {}
+  alert('PIN updated to ' + np + ' ✓');
+}
+
+function initPin() {
+  var unlocked = false;
+  try { unlocked = sessionStorage.getItem(PIN_SESSION) === '1'; } catch(ex) {}
+  var ps = document.getElementById('pin-screen');
+  if (ps) ps.style.display = unlocked ? 'none' : 'flex';
+
+  // Wire up buttons with addEventListener - more reliable than onclick
+  var btnMap = {
+    'pb1':1,'pb2':2,'pb3':3,'pb4':4,'pb5':5,
+    'pb6':6,'pb7':7,'pb8':8,'pb9':9,'pb0':0
+  };
+  for (var btnId in btnMap) {
+    (function(id, num) {
+      var btn = document.getElementById(id);
+      if (btn) btn.addEventListener('click', function() { pinPress(num); });
+    })(btnId, btnMap[btnId]);
+  }
+  var clrBtn = document.getElementById('pbclr');
+  if (clrBtn) clrBtn.addEventListener('click', function() { pinClear(); });
+  var bkBtn = document.getElementById('pbbk');
+  if (bkBtn) bkBtn.addEventListener('click', function() { pinBack(); });
+  var chgBtn = document.getElementById('pin-change-btn');
+  if (chgBtn) chgBtn.addEventListener('click', function() { changePin(); });
+
+  document.addEventListener('keydown', function(e) {
+    var ps2 = document.getElementById('pin-screen');
+    if (!ps2 || ps2.style.display === 'none') return;
+    if (e.key >= '0' && e.key <= '9') pinPress(parseInt(e.key));
+    if (e.key === 'Backspace') pinBack();
+    if (e.key === 'Escape') pinClear();
+  });
+}
+
+// ── INIT ──
+initPin();
+</script>
+</body>
+</html>
